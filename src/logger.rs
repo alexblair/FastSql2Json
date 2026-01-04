@@ -2,7 +2,7 @@ use log::LevelFilter;
 use std::io::Write;
 use std::time::SystemTime;
 
-pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
+pub fn init_logger(level: LevelFilter) -> Result<(), Box<dyn std::error::Error>> {
     env_logger::builder()
         .format(|buf, record| {
             let timestamp = SystemTime::now()
@@ -11,7 +11,7 @@ pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
                 .as_secs();
             writeln!(buf, "[{}] [{}] - {}", timestamp, record.level(), record.args())
         })
-        .filter(None, LevelFilter::Info)
+        .filter(None, level)
         .init();
     Ok(())
 }

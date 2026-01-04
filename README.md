@@ -86,6 +86,129 @@ start_dir = "./sql_files"  # SQL文件存放目录
 "./sql_files/subdir/query2.sql" = 1440  # 每天更新一次
 ```
 
+## 命令行选项
+
+### 概述
+
+FastSQL2Json提供了灵活的命令行选项，允许您根据需要调整应用程序的行为。以下是所有可用的命令行选项：
+
+### 命令行语法
+
+```bash
+# 基本语法
+FastSQL2Json [OPTIONS]
+
+# 使用cargo运行
+cargo run -- [OPTIONS]
+```
+
+### 可用选项
+
+| 选项 | 长选项 | 描述 | 默认值 |
+|------|--------|------|--------|
+| `-c` | `--config` | 指定配置文件路径 | `config.toml`（当前目录） |
+| `-q` | `--quiet` | 禁用所有日志输出 | 否 |
+| `-e` | `--error-only` | 仅输出错误级别的日志 | 否 |
+| `-h` | `--help` | 显示帮助信息 | - |
+| `-V` | `--version` | 显示版本信息 | - |
+
+### 详细说明
+
+#### 1. 配置文件路径选项 `-c/--config`
+
+**功能**：指定应用程序使用的配置文件路径。
+
+**语法**：
+```bash
+FastSQL2Json -c <CONFIG_FILE_PATH>
+FastSQL2Json --config <CONFIG_FILE_PATH>
+```
+
+**参数**：
+- `<CONFIG_FILE_PATH>`：配置文件的绝对路径或相对路径（相对于当前工作目录）
+
+**示例**：
+```bash
+# 使用相对路径指定配置文件
+FastSQL2Json -c ./configs/my_config.toml
+
+# 使用绝对路径指定配置文件
+FastSQL2Json --config /etc/fastsql2json/config.toml
+
+# 使用cargo运行时指定配置文件
+cargo run -- -c ./test_config.toml
+```
+
+**说明**：
+- 如果不指定此选项，应用程序将默认在当前目录下查找`config.toml`文件
+- 配置文件必须遵循TOML格式，结构请参考[配置说明](#配置说明)部分
+
+#### 2. 无输出选项 `-q/--quiet`
+
+**功能**：禁用所有日志输出，使应用程序在静默模式下运行。
+
+**语法**：
+```bash
+FastSQL2Json -q
+FastSQL2Json --quiet
+```
+
+**示例**：
+```bash
+# 静默模式运行，不输出任何日志
+FastSQL2Json -q
+
+# 结合配置文件选项使用
+FastSQL2Json -c ./config.toml -q
+```
+
+**说明**：
+- 此选项适用于生产环境，减少日志输出带来的性能开销
+- 即使启用静默模式，应用程序仍会正常执行所有功能，只是不输出日志信息
+- 如果同时指定了`-q`和`-e`选项，`-q`将优先生效，禁用所有输出
+
+#### 3. 仅输出错误选项 `-e/--error-only`
+
+**功能**：仅输出错误级别的日志信息，忽略信息、警告等其他级别的日志。
+
+**语法**：
+```bash
+FastSQL2Json -e
+FastSQL2Json --error-only
+```
+
+**示例**：
+```bash
+# 仅输出错误日志
+FastSQL2Json -e
+
+# 结合配置文件选项使用
+FastSQL2Json -c ./config.toml -e
+```
+
+**说明**：
+- 此选项适用于生产环境，仅关注错误信息
+- 错误日志包括数据库连接错误、SQL执行错误、文件写入错误等关键错误信息
+- 正常情况下，应用程序会输出INFO级别的日志，如"Loaded configuration from config.toml"、"Connected to MySQL database"等
+
+### 组合使用示例
+
+您可以根据需要组合使用多个命令行选项：
+
+```bash
+# 使用指定配置文件，仅输出错误日志
+FastSQL2Json -c ./prod_config.toml -e
+
+# 使用指定配置文件，无任何输出
+FastSQL2Json --config ./test_config.toml --quiet
+
+# 查看帮助信息
+FastSQL2Json -h
+
+# 查看版本信息
+FastSQL2Json -V
+```
+
 ### 基本操作示例
 
 #### 1. 准备SQL文件
@@ -104,11 +227,20 @@ LIMIT 10;
 #### 2. 运行应用
 
 ```bash
+# 默认方式运行（使用当前目录下的config.toml）
+FastSQL2Json
+
 # 使用开发构建运行
 cargo run
 
 # 使用生产构建运行
-./target/release/hello_cargo  # 注意：实际可执行文件名可能需要调整
+./target/release/FastSQL2Json
+
+# 指定配置文件运行
+./target/release/FastSQL2Json -c ./configs/prod.toml
+
+# 静默模式运行生产构建
+./target/release/FastSQL2Json -q
 ```
 
 #### 3. 查看生成的JSON文件
@@ -131,6 +263,82 @@ cargo run
   }
 ]
 ```
+
+### 命令行选项（中文说明）
+
+#### 1. 配置文件路径选项 `-c/--config`
+
+**功能**：指定应用程序使用的配置文件路径。
+
+**语法**：
+```bash
+FastSQL2Json -c <配置文件路径>
+FastSQL2Json --config <配置文件路径>
+```
+
+**参数**：
+- `<配置文件路径>`：配置文件的绝对路径或相对路径（相对于当前工作目录）
+
+**示例**：
+```bash
+# 使用相对路径指定配置文件
+FastSQL2Json -c ./configs/my_config.toml
+
+# 使用绝对路径指定配置文件
+FastSQL2Json --config /etc/fastsql2json/config.toml
+```
+
+**说明**：
+- 如果不指定此选项，应用程序将默认在当前目录下查找`config.toml`文件
+- 配置文件必须遵循TOML格式，结构请参考[配置说明](#配置说明)部分
+
+#### 2. 无输出选项 `-q/--quiet`
+
+**功能**：禁用所有日志输出，使应用程序在静默模式下运行。
+
+**语法**：
+```bash
+FastSQL2Json -q
+FastSQL2Json --quiet
+```
+
+**示例**：
+```bash
+# 静默模式运行，不输出任何日志
+FastSQL2Json -q
+
+# 结合配置文件选项使用
+FastSQL2Json -c ./config.toml -q
+```
+
+**说明**：
+- 此选项适用于生产环境，减少日志输出带来的性能开销
+- 即使启用静默模式，应用程序仍会正常执行所有功能，只是不输出日志信息
+- 如果同时指定了`-q`和`-e`选项，`-q`将优先生效，禁用所有输出
+
+#### 3. 仅输出错误选项 `-e/--error-only`
+
+**功能**：仅输出错误级别的日志信息，忽略信息、警告等其他级别的日志。
+
+**语法**：
+```bash
+FastSQL2Json -e
+FastSQL2Json --error-only
+```
+
+**示例**：
+```bash
+# 仅输出错误日志
+FastSQL2Json -e
+
+# 结合配置文件选项使用
+FastSQL2Json -c ./config.toml -e
+```
+
+**说明**：
+- 此选项适用于生产环境，仅关注错误信息
+- 错误日志包括数据库连接错误、SQL执行错误、文件写入错误等关键错误信息
+- 正常情况下，应用程序会输出INFO级别的日志，如"Loaded configuration from config.toml"、"Connected to MySQL database"等
 
 ### 高级功能示例
 

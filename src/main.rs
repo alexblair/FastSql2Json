@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use tokio::task::JoinSet;
 use std::time::Duration;
+use clap::Parser;
+use log::LevelFilter;
 
 mod config;
 mod logger;
@@ -19,14 +21,41 @@ use crate::json_generator::JsonGenerator;
 use crate::file_handler::FileHandler;
 use crate::logger::init_logger;
 
+/// FastSQL2Json - Convert SQL results to JSON files
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Path to the configuration file (default: config.toml in current directory)
+    #[arg(short, long, default_value = "config.toml")]
+    config: String,
+    /// Disable all output
+    #[arg(short, long)]
+    quiet: bool,
+    /// Only output errors
+    #[arg(short, long)]
+    error_only: bool,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // 解析命令行参数
+    let args = Args::parse();
+    
+    // 设置日志级别
+    let log_level = if args.quiet {
+        LevelFilter::Off
+    } else if args.error_only {
+        LevelFilter::Error
+    } else {
+        LevelFilter::Info
+    };
+    
     // 初始化日志
-    init_logger()?;
+    init_logger(log_level)?;
     
     // 读取配置文件
-    let config = Config::from_file("config.toml")?;
-    log::info!("Loaded configuration from config.toml");
+    let config = Config::from_file(&args.config)?;
+    log::info!("Loaded configuration from {}", args.config);
     
     // 创建数据库连接池
     let db_pool = DbPool::new(
